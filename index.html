@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Next-Gen Evolution Engine</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #0b0c10;
+  color: #eeeeee;
+  overflow-x: hidden;
+}
+
+/* Smooth fade */
+.fade-in { animation: fadeIn 0.6s ease forwards; opacity: 0; }
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* Layout */
+header {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #1f2833, #0b0c10);
+  border-bottom: 1px solid #45a29e;
+}
+
+h1 {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.filter {
+  background: #1f2833;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid #45a29e;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.filter.active {
+  background: #45a29e;
+  color: #0b0c10;
+}
+
+.search {
+  display: block;
+  margin: 15px auto;
+  width: min(90%, 500px);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #45a29e;
+  background: #1f2833;
+  color: #eee;
+}
+
+/* Grid */
+#items {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+}
+
+.item {
+  background: #1f2833;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #45a29e;
+  transition: 0.3s;
+}
+
+.item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.item h3 {
+  margin: 0 0 10px;
+  color: #66fcf1;
+}
+
+.checkbox {
+  transform: scale(1.4);
+  margin-right: 10px;
+}
+
+.notes {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  background: #0b0c10;
+  border: 1px solid #45a29e;
+  color: #eee;
+  resize: vertical;
+}
+
+/* Toolbox */
+.toolbox {
+  padding: 20px;
+  border-top: 1px solid #45a29e;
+  background: #0b0c10;
+}
+
+.toolbox h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.toolbox button {
+  background: #45a29e;
+  border: none;
+  padding: 12px 20px;
+  margin: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #0b0c10;
+  font-weight: 700;
+  transition: 0.3s;
+}
+
+.toolbox button:hover {
+  background: #66fcf1;
+}
+
+#reflectionOutput {
+  white-space: pre-wrap;
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #45a29e;
+  border-radius: 10px;
+  background: #1f2833;
+  display: none;
+}
+
+</style>
+</head>
+<body class="fade-in">
+
+<header>
+  <h1>Next-Gen Evolution Engine</h1>
+  <p>100 tools, traits, and transformations to accelerate human evolution.</p>
+
+  <input id="search" class="search" type="text" placeholder="Search wisdom, skills, traits…">
+  
+  <div class="filters">
+    <div class="filter" data-cat="mind">Mind</div>
+    <div class="filter" data-cat="emotion">Emotion</div>
+    <div class="filter" data-cat="skills">Skills</div>
+    <div class="filter" data-cat="ethics">Ethics</div>
+    <div class="filter" data-cat="systems">Systems</div>
+    <div class="filter" data-cat="nature">Nature</div>
+  </div>
+</header>
+
+<div id="items"></div>
+
+<div class="toolbox">
+  <h2>Evolution Toolbox</h2>
+  <button onclick="generateReflection()">Daily Reflection Prompt</button>
+  <button onclick="randomChallenge()">Random Evolution Challenge</button>
+  <button onclick="exportProgress()">Export Progress</button>
+
+  <div id="reflectionOutput"></div>
+</div>
+
+<script>
+/* CORE DATASET */
+const data = [
+  { text:"Learn one scientific concept per day and tie it to a real-life moment.", cat:"mind" },
+  { text:"Build a failure portfolio — celebrate misfires as progress markers.", cat:"mind" },
+  { text:"Keep a daily “emotional physics” log: what forces moved you and why.", cat:"emotion" },
+  { text:"Master one tool from each domain: coding, writing, naturecraft, diplomacy.", cat:"skills" },
+  { text:"Always ask: “What would this look like if it were easy?”", cat:"mind" },
+  { text:"Turn tension into information, not fuel.", cat:"emotion" },
+  { text:"Read across cultures until your worldview becomes porous.", cat:"mind" },
+  { text:"Adopt someone else’s perspective once a week.", cat:"ethics" },
+  { text:"Learn how to teach: teaching accelerates evolution.", cat:"skills" },
+  { text:"Treat curiosity as a survival skill.", cat:"mind" },
+  { text:"Build micro-systems for budgeting, habits, resilience.", cat:"systems" },
+  { text:"Study pattern recognition without letting it swallow certainty.", cat:"mind" },
+  { text:"Create a future-self protocol.", cat:"mind" },
+  { text:"Document breakthroughs in simple language.", cat:"skills" },
+  { text:"Understand your nervous system first.", cat:"emotion" },
+  { text:"Learn three ways to calm your body under stress.", cat:"emotion" },
+  { text:"Study propaganda and cognitive bias early.", cat:"mind" },
+  { text:"Become fluent in AI as cognitive augmentation.", cat:"skills" },
+  { text:"Grow a plant from seed — master time.", cat:"nature" },
+  { text:"Explore loneliness vs solitude.", cat:"emotion" },
+  { text:"Prune your feeds like a bonsai tree.", cat:"mind" },
+  { text:"Develop desire-guardrails.", cat:"emotion" },
+  { text:"Repair something physical.", cat:"skills" },
+  { text:"Build something digital.", cat:"skills" },
+  { text:"Study systems thinking.", cat:"systems" },
+  { text:"Read a philosophy you disagree with.", cat:"mind" },
+  { text:"Craft your personal myth.", cat:"mind" },
+  { text:"Study negotiation.", cat:"skills" },
+  { text:"Switch to ‘What can I learn here?’ mode.", cat:"mind" },
+  { text:"Understand compounding across domains.", cat:"systems" },
+  { text:"Practice silence.", cat:"emotion" },
+  { text:"Memorize one poem that feels like home.", cat:"emotion" },
+  { text:"Master sleep.", cat:"mind" },
+  { text:"Learn to apologize precisely.", cat:"ethics" },
+  { text:"Build a routine that survives bad days.", cat:"mind" },
+  { text:"Understand attachment styles without hiding behind them.", cat:"emotion" },
+  { text:"Become the person who resolves conflict.", cat:"ethics" },
+  { text:"Learn financial literacy early.", cat:"systems" },
+  { text:"Replace envy with curiosity.", cat:"emotion" },
+  { text:"Study your micro-expressions.", cat:"emotion" },
+  { text:"Track what energizes and drains you.", cat:"mind" },
+  { text:"Audit friendships annually.", cat:"ethics" },
+  { text:"Practice gratitude like a muscle.", cat:"emotion" },
+  { text:"Learn the difference between love and longing.", cat:"emotion" },
+  { text:"Do the scary thing first.", cat:"mind" },
+  { text:"Let go of needing universal understanding.", cat:"emotion" },
+  { text:"Study generational trauma gently.", cat:"emotion" },
+  { text:"Study the hero’s journey then subvert it.", cat:"mind" },
+  { text:"Cook three meals well.", cat:"skills" },
+  { text:"Master your digital identity.", cat:"skills" },
+  { text:"Explore meditation styles.", cat:"emotion" },
+  { text:"Learn an ancient skill.", cat:"nature" },
+  { text:"Study exponentials (AI, genetics, climate).", cat:"systems" },
+  { text:"Build a self-correcting thought loop.", cat:"mind" },
+  { text:"Sit with discomfort without rejecting yourself.", cat:"emotion" },
+  { text:"Develop ethical micro-kindness.", cat:"ethics" },
+  { text:"Craft a personal code of ethics.", cat:"ethics" },
+  { text:"Think in probabilities, not absolutes.", cat:"mind" },
+  { text:"Practice letting go before things rot.", cat:"emotion" },
+  { text:"Use constraints to boost creativity.", cat:"mind" },
+  { text:"Write clearly—clarity is a weapon.", cat:"skills" },
+  { text:"Ask sharper questions.", cat:"skills" },
+  { text:"Convert pain → wisdom.", cat:"emotion" },
+  { text:"Understand that small stories break people.", cat:"emotion" },
+  { text:"Practice reframing: multiply meanings.", cat:"mind" },
+  { text:"Study mobs, movements, and myth formation.", cat:"systems" },
+  { text:"Learn when to be steel and when to be soft.", cat:"ethics" },
+  { text:"Track your inner monologue with compassion.", cat:"emotion" },
+  { text:"Spot early warning signs in yourself.", cat:"emotion" },
+  { text:"Disagree without humiliation.", cat:"ethics" },
+  { text:"Create weekly art.", cat:"skills" },
+  { text:"Study the science of attention.", cat:"mind" },
+  { text:"Practice micro-courage daily.", cat:"mind" },
+  { text:"Train situational awareness.", cat:"skills" },
+  { text:"Know your archetype but don’t obey it.", cat:"mind" },
+  { text:"Replace pride with precision.", cat:"ethics" },
+  { text:"Archive your younger selves.", cat:"mind" },
+  { text:"Understand freedom vs discipline.", cat:"ethics" },
+  { text:"Gamify your growth ethically.", cat:"systems" },
+  { text:"Perform under pressure without self-harm.", cat:"skills" },
+  { text:"Find mentors who contradict each other.", cat:"mind" },
+  { text:"Understand sensory overload.", cat:"emotion" },
+  { text:"Copy children’s learning methods.", cat:"mind" },
+  { text:"Name feelings accurately.", cat:"emotion" },
+  { text:"Repair relationships early.", cat:"ethics" },
+  { text:"Remember: small kindness reroutes destiny.", cat:"ethics" },
+  { text:"Explore thresholds of identity & transformation.", cat:"mind" },
+  { text:"Sense worldview shifts as moltings, not crises.", cat:"mind" },
+  { text:"Build ambition without addiction.", cat:"mind" },
+  { text:"Study deep time.", cat:"systems" },
+  { text:"Understand power ethics.", cat:"ethics" },
+  { text:"Practice generosity without depletion.", cat:"ethics" },
+  { text:"Respond without frenzy.", cat:"mind" },
+  { text:"Build anchoring rituals.", cat:"emotion" },
+  { text:"Hold two truths at once.", cat:"mind" },
+  { text:"Recognize fear under most cruelty.", cat:"emotion" },
+  { text:"Admire quietly without possession.", cat:"emotion" },
+  { text:"Practice emotional aikido.", cat:"emotion" },
+  { text:"Study legacy: actions ripple beyond biography.", cat:"mind" },
+  { text:"Become who you needed at 13.", cat:"ethics" },
+];
+
+/* RENDERING */
+const itemsEl = document.getElementById("items");
+
+function loadState() {
+  return JSON.parse(localStorage.getItem("evolutionState") || "{}");
+}
+
+function saveState(state) {
+  localStorage.setItem("evolutionState", JSON.stringify(state));
+}
+
+let state = loadState();
+
+function render() {
+  itemsEl.innerHTML = "";
+  const search = document.getElementById("search").value.toLowerCase();
+  const filters = [...document.querySelectorAll(".filter.active")].map(f => f.dataset.cat);
+
+  data.forEach((d, i) => {
+    if (search && !d.text.toLowerCase().includes(search)) return;
+    if (filters.length && !filters.includes(d.cat)) return;
+
+    const item = document.createElement("div");
+    item.className = "item fade-in";
+
+    const checked = state[i]?.checked || false;
+    const notes = state[i]?.notes || "";
+
+    item.innerHTML = `
+      <h3>${d.text}</h3>
+      <label>
+        <input type="checkbox" class="checkbox" data-i="${i}" ${checked ? "checked" : ""}> Completed
+      </label>
+      <textarea class="notes" data-i="${i}" placeholder="Notes...">${notes}</textarea>
+    `;
+
+    itemsEl.appendChild(item);
+  });
+}
+
+document.addEventListener("change", e => {
+  const i = e.target.dataset.i;
+  if (i === undefined) return;
+
+  if (e.target.type === "checkbox") {
+    state[i] = state[i] || {};
+    state[i].checked = e.target.checked;
+  } else if (e.target.classList.contains("notes")) {
+    state[i] = state[i] || {};
+    state[i].notes = e.target.value;
+  }
+  saveState(state);
+});
+
+document.querySelectorAll(".filter").forEach(f => {
+  f.onclick = () => {
+    f.classList.toggle("active");
+    render();
+  };
+});
+
+document.getElementById("search").oninput = render;
+
+render();
+
+/* TOOLBOX FUNCTIONS */
+function generateReflection() {
+  const prompts = [
+    "Where did I show courage today?",
+    "What pattern repeated today that I want to break?",
+    "What truth did I avoid and why?",
+    "What drained my energy? What restored it?",
+    "What would my future self thank me for?"
+  ];
+  const out = document.getElementById("reflectionOutput");
+  out.innerText = prompts[Math.floor(Math.random() * prompts.length)];
+  out.style.display = "block";
+}
+
+function randomChallenge() {
+  const out = document.getElementById("reflectionOutput");
+  out.innerText = "CHALLENGE: " + data[Math.floor(Math.random() * data.length)].text;
+  out.style.display = "block";
+}
+
+function exportProgress() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "evolution_progress.json";
+  a.click();
+}
+
+</script>
+</body>
+</html>
